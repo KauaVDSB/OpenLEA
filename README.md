@@ -9,6 +9,7 @@
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white">
   <img alt="pywinauto" src="https://img.shields.io/badge/UI%20Automation-pywinauto-informational">
   <img alt="openpyxl" src="https://img.shields.io/badge/data-openpyxl-217346?logo=microsoftexcel&logoColor=white">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-yellow">
   <img alt="License" src="https://img.shields.io/badge/license-not%20defined-lightgrey">
 </p>
@@ -21,6 +22,7 @@
   <a href="#-formato-da-planilha">Planilha</a> •
   <a href="#-uso">Uso</a> •
   <a href="#-configura%C3%A7%C3%A3o">Configuração</a> •
+  <a href="#-testes">Testes</a> •
   <a href="#-avisos-importantes">Avisos</a>
 </p>
 
@@ -147,15 +149,37 @@ Já os parâmetros **específicos do fluxo clínico** (unidade, CID-10, motivo d
 
 Se os tempos de espera (`PAUSA_*`) forem insuficientes para a sua máquina/rede, ajuste-os em `config.py` antes de rodar um lote grande.
 
+## 🧪 Testes
+
+A camada de leitura/escrita de planilha ([`excel_logger.py`](excel_logger.py)) tem cobertura de testes automatizados com `pytest` — o RPA em si (`rpa_core.py`) depende de uma janela real do MWSUS e não é testado unitariamente.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+A suíte cobre, entre outros cenários:
+
+- Detecção de colunas ausentes/alias (`MÉDICO`/`MEDICO`, `DATA`/`VALIDADE`/`DATA DE VALIDADE`);
+- Fila pulando linhas sem `REG` e linhas já coloridas (processadas);
+- "Arrasto" de médico/data para linhas com células vazias (simulando mesclagem);
+- Conversão de data em `datetime`, número serial do Excel e string com separadores;
+- Erro (`ValueError`) quando não é possível determinar médico/data de uma linha;
+- Coloração correta (azul/vermelho) e restrita às colunas A–F em `registrar_status`.
+
 ## 🗂️ Estrutura do projeto
 
 ```
 OpenLEA/
-├── main.py           # Ponto de entrada: seleção de planilha, loop de pacientes, orquestração
-├── rpa_core.py        # Automação de UI (pywinauto) — conexão e preenchimento da tela LEA
-├── excel_logger.py    # Leitura/validação da planilha e gravação do log colorido
-├── config.py           # Parâmetros globais (título da janela, cores, tempos de espera)
-└── requirements.txt    # Dependências do projeto
+├── main.py               # Ponto de entrada: seleção de planilha, loop de pacientes, orquestração
+├── rpa_core.py            # Automação de UI (pywinauto) — conexão e preenchimento da tela LEA
+├── excel_logger.py        # Leitura/validação da planilha e gravação do log colorido
+├── config.py              # Parâmetros globais (título da janela, cores, tempos de espera)
+├── requirements.txt       # Dependências de execução
+├── requirements-dev.txt   # Dependências de desenvolvimento (inclui pytest)
+├── pytest.ini             # Configuração do pytest
+└── tests/
+    └── test_excel_logger.py
 ```
 
 ## ⚠️ Avisos importantes
@@ -170,7 +194,7 @@ OpenLEA/
 - [ ] Externalizar unidade/CID-10/parâmetros de APAC para `config.py` (hoje fixos em `rpa_core.py`)
 - [ ] Registrar log de execução em arquivo, além da coloração da planilha
 - [ ] Suporte a múltiplas unidades/especialidades via arquivo de configuração
-- [ ] Testes automatizados para `excel_logger.py`
+- [ ] Integração contínua (CI) rodando `pytest` a cada push/PR
 
 ## 🤝 Contribuindo
 
